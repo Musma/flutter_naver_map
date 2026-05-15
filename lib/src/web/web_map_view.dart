@@ -28,6 +28,8 @@ class _WebNaverMapViewState extends State<WebNaverMapView> {
   late final String _viewType;
   JSNaverMap? _jsMap;
   bool _mapInitialized = false;
+  bool _mapInitializationScheduled = false;
+
   web.HTMLDivElement? _mapDiv;
 
   @override
@@ -42,6 +44,7 @@ class _WebNaverMapViewState extends State<WebNaverMapView> {
       div.style.width = "100%";
       div.style.height = "100%";
       _mapDiv = div;
+      _tryInitializeAfterBuild();
       return div;
     });
   }
@@ -49,7 +52,9 @@ class _WebNaverMapViewState extends State<WebNaverMapView> {
   /// div가 DOM에 부착되고 나서 지도를 초기화합니다.
   /// HtmlElementView가 빌드되어 실제 DOM에 삽입된 후 호출됩니다.
   void _tryInitializeAfterBuild() {
-    if (_mapInitialized || _mapDiv == null) return;
+    if (_mapInitialized || _mapDiv == null || _mapInitializationScheduled) return;
+
+    _mapInitializationScheduled = true;
 
     void tryInit([int retries = 0]) {
       if (!mounted || _mapInitialized) return;
@@ -68,6 +73,10 @@ class _WebNaverMapViewState extends State<WebNaverMapView> {
 
     // 첫 프레임 이후 시도
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _mapInitializationScheduled = false;
+      if (!mounted || _mapInitialized || _mapDiv == null) {
+        return;
+      }
       tryInit();
     });
   }
@@ -105,8 +114,7 @@ class _WebNaverMapViewState extends State<WebNaverMapView> {
         pinchZoom: (params["zoomGesturesEnable"] as bool? ?? true).toJS,
         rotateEnabled: (params["rotateGesturesEnable"] as bool? ?? true).toJS,
         tiltEnabled: (params["tiltGesturesEnable"] as bool? ?? true).toJS,
-        disableDoubleClickZoom:
-            (!(params["zoomGesturesEnable"] as bool? ?? true)).toJS,
+        disableDoubleClickZoom: (!(params["zoomGesturesEnable"] as bool? ?? true)).toJS,
         logoControl: true.toJS,
         mapDataControl: true.toJS,
         scaleControl: false.toJS,
