@@ -4,8 +4,7 @@ abstract class NaverMapController implements _NaverMapControlSender {
   static NaverMapController _createController(MethodChannel controllerChannel,
       {required int viewId, required NCameraPosition initialCameraPosition}) {
     final overlayController = _NOverlayControllerImpl(viewId: viewId);
-    return _NaverMapControllerImpl(
-        controllerChannel, overlayController, initialCameraPosition);
+    return _NaverMapControllerImpl(controllerChannel, overlayController, initialCameraPosition);
   }
 
   static NaverMapController _createWebController({
@@ -42,33 +41,25 @@ abstract class NaverMapController implements _NaverMapControlSender {
 
   Stream<NLocationTrackingMode> get _locationTrackingModeStream;
 
-  void _updateNowCameraPositionData(
-      NCameraPosition position, NCameraUpdateReason? reason, bool isIdle);
+  void _updateNowCameraPositionData(NCameraPosition position, NCameraUpdateReason? reason, bool isIdle);
 }
 
-class _NaverMapControllerImpl
-    with NChannelWrapper
-    implements NaverMapController {
+class _NaverMapControllerImpl with NChannelWrapper implements NaverMapController {
   @override
   final MethodChannel channel;
 
   final _NOverlayController overlayController;
 
   @override
-  NCameraPosition get nowCameraPosition =>
-      _nowCameraPositionStreamController.currentData.position;
+  NCameraPosition get nowCameraPosition => _nowCameraPositionStreamController.currentData.position;
 
   @override
-  Stream<OnCameraChangedParams> get nowCameraPositionStream =>
-      _nowCameraPositionStreamController.stream;
+  Stream<OnCameraChangedParams> get nowCameraPositionStream => _nowCameraPositionStreamController.stream;
 
-  final NValueHoldHotStreamController<OnCameraChangedParams>
-      _nowCameraPositionStreamController;
+  final NValueHoldHotStreamController<OnCameraChangedParams> _nowCameraPositionStreamController;
 
-  _NaverMapControllerImpl(this.channel, this.overlayController,
-      NCameraPosition initialCameraPosition)
-      : _nowCameraPositionStreamController =
-            NValueHoldHotStreamController(OnCameraChangedParams(
+  _NaverMapControllerImpl(this.channel, this.overlayController, NCameraPosition initialCameraPosition)
+      : _nowCameraPositionStreamController = NValueHoldHotStreamController(OnCameraChangedParams(
           position: initialCameraPosition,
           reason: NCameraUpdateReason.developer,
           isIdle: true,
@@ -81,8 +72,7 @@ class _NaverMapControllerImpl
   }
 
   @override
-  Future<void> cancelTransitions(
-      {NCameraUpdateReason reason = NCameraUpdateReason.developer}) async {
+  Future<void> cancelTransitions({NCameraUpdateReason reason = NCameraUpdateReason.developer}) async {
     await invokeMethod("cancelTransitions", reason);
   }
 
@@ -102,8 +92,7 @@ class _NaverMapControllerImpl
   @override
   Future<List<NLatLng>> getContentRegion({bool withPadding = false}) async {
     final messageable = NMessageable.forOnce(withPadding);
-    final rawLatLngs = await invokeMethod("getContentRegion", messageable)
-        .then((rawList) => rawList as List);
+    final rawLatLngs = await invokeMethod("getContentRegion", messageable).then((rawList) => rawList as List);
     return rawLatLngs.map(NLatLng.fromMessageable).toList();
   }
 
@@ -119,75 +108,61 @@ class _NaverMapControllerImpl
 
   @override
   Future<NLatLng> screenLocationToLatLng(NPoint point) {
-    return invokeMethod("screenLocationToLatLng", point)
-        .then((rawLatLng) => NLatLng.fromMessageable(rawLatLng));
+    return invokeMethod("screenLocationToLatLng", point).then((rawLatLng) => NLatLng.fromMessageable(rawLatLng));
   }
 
   @override
   Future<NPoint> latLngToScreenLocation(NLatLng latLng) {
-    return invokeMethod("latLngToScreenLocation", latLng)
-        .then((rawPoint) => NPoint._fromMessageable(rawPoint));
+    return invokeMethod("latLngToScreenLocation", latLng).then((rawPoint) => NPoint._fromMessageable(rawPoint));
   }
 
   @override
   double getMeterPerDp() {
-    return getMeterPerDpAtLatitude(
-        latitude: nowCameraPosition.target.latitude,
-        zoom: nowCameraPosition.zoom);
+    return getMeterPerDpAtLatitude(latitude: nowCameraPosition.target.latitude, zoom: nowCameraPosition.zoom);
   }
 
   @override
-  double getMeterPerDpAtLatitude(
-      {required double latitude, required double zoom}) {
+  double getMeterPerDpAtLatitude({required double latitude, required double zoom}) {
     return MathUtil.calcMeterPerDp(latitude, zoom);
   }
 
   @override
   Future<List<NPickableInfo>> pickAll(NPoint point, {double radius = 0}) async {
-    final messageable =
-        NMessageable.forOnceWithMap({"point": point, "radius": radius});
+    final messageable = NMessageable.forOnceWithMap({"point": point, "radius": radius});
 
-    final rawList =
-        await invokeMethod("pickAll", messageable).then((raw) => raw as List);
-    final pickableInfoList =
-        rawList.map(NPickableInfo._fromMessageable).toList();
+    final rawList = await invokeMethod("pickAll", messageable).then((raw) => raw as List);
+    final pickableInfoList = rawList.map(NPickableInfo._fromMessageable).toList();
 
     return pickableInfoList;
   }
 
   @override
   Future<File> takeSnapshot({
-    @Deprecated("showControls is not supported from 1.4.0")
-    bool showControls = false,
+    @Deprecated("showControls is not supported from 1.4.0") bool showControls = false,
     int compressQuality = 80,
   }) async {
     final messageable = NMessageable.forOnceWithMap({
       "showControls": showControls, // deprecated
       "compressQuality": compressQuality,
     });
-    final path = await invokeMethod("takeSnapshot", messageable)
-        .then((raw) => raw as String);
+    final path = await invokeMethod("takeSnapshot", messageable).then((raw) => raw as String);
     return createFile(path);
   }
 
-  final _trackingModeStreamController =
-      NValueHoldHotStreamController(NLocationTrackingMode.none);
+  final _trackingModeStreamController = NValueHoldHotStreamController(NLocationTrackingMode.none);
 
   @override
-  Stream<NLocationTrackingMode> get _locationTrackingModeStream =>
-      _trackingModeStreamController.stream;
+  Stream<NLocationTrackingMode> get _locationTrackingModeStream => _trackingModeStreamController.stream;
 
   @override
-  NLocationTrackingMode get locationTrackingMode =>
-      _trackingModeStreamController.currentData;
+  NLocationTrackingMode get locationTrackingMode => _trackingModeStreamController.currentData;
 
   @override
   void setLocationTrackingMode(NLocationTrackingMode mode) {
     if (locationTrackingMode == mode) return; // guard distinct
     final oldMode = locationTrackingMode;
     _trackingModeStreamController.add(mode);
-    myLocationTracker._onChangeTrackingMode(
-        getLocationOverlay(), this, mode, oldMode);
+    myLocationTracker._onChangeTrackingMode(getLocationOverlay(), this, mode, oldMode);
   }
 
   @override
@@ -268,12 +243,9 @@ class _NaverMapControllerImpl
   }
 
   @override
-  void _updateNowCameraPositionData(
-      NCameraPosition position, NCameraUpdateReason? reason, bool isIdle) {
+  void _updateNowCameraPositionData(NCameraPosition position, NCameraUpdateReason? reason, bool isIdle) {
     _nowCameraPositionStreamController.add(OnCameraChangedParams(
-        position: position,
-        reason: reason ?? _nowCameraPositionStreamController.currentData.reason,
-        isIdle: isIdle));
+        position: position, reason: reason ?? _nowCameraPositionStreamController.currentData.reason, isIdle: isIdle));
   }
 
   /*
@@ -300,11 +272,9 @@ class _NaverMapControllerWebImpl implements NaverMapController {
   final Map<NOverlayInfo, dynamic> _jsOverlays = {};
   late final _NOverlayControllerWebImpl _webOverlayController;
 
-  final NValueHoldHotStreamController<OnCameraChangedParams>
-      _nowCameraPositionStreamController;
+  final NValueHoldHotStreamController<OnCameraChangedParams> _nowCameraPositionStreamController;
 
-  final _trackingModeStreamController =
-      NValueHoldHotStreamController(NLocationTrackingMode.none);
+  final _trackingModeStreamController = NValueHoldHotStreamController(NLocationTrackingMode.none);
 
   _NaverMapControllerWebImpl({
     required this.viewId,
@@ -314,8 +284,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
     required void Function(NCameraUpdateReason reason, bool animated, NCameraPosition position) onCameraChange,
     required void Function(NCameraPosition position) onCameraIdle,
   })  : _jsMap = jsMap,
-        _nowCameraPositionStreamController =
-            NValueHoldHotStreamController(OnCameraChangedParams(
+        _nowCameraPositionStreamController = NValueHoldHotStreamController(OnCameraChangedParams(
           position: initialCameraPosition,
           reason: NCameraUpdateReason.developer,
           isIdle: true,
@@ -332,8 +301,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
           tilt: tilt,
           bearing: bearing,
         );
-        _updateNowCameraPositionData(
-            position, NCameraUpdateReason.gesture, false);
+        _updateNowCameraPositionData(position, NCameraUpdateReason.gesture, false);
         onCameraChange(NCameraUpdateReason.gesture, animated, position);
       },
       onCameraIdle: (lat, lng, zoom, tilt, bearing) {
@@ -355,24 +323,18 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
   @override
   @experimental
-  NCameraPosition get nowCameraPosition =>
-      _nowCameraPositionStreamController.currentData.position;
+  NCameraPosition get nowCameraPosition => _nowCameraPositionStreamController.currentData.position;
 
   @override
-  Stream<OnCameraChangedParams> get nowCameraPositionStream =>
-      _nowCameraPositionStreamController.stream;
+  Stream<OnCameraChangedParams> get nowCameraPositionStream => _nowCameraPositionStreamController.stream;
 
   @override
-  Stream<NLocationTrackingMode> get _locationTrackingModeStream =>
-      _trackingModeStreamController.stream;
+  Stream<NLocationTrackingMode> get _locationTrackingModeStream => _trackingModeStreamController.stream;
 
   @override
-  void _updateNowCameraPositionData(
-      NCameraPosition position, NCameraUpdateReason? reason, bool isIdle) {
+  void _updateNowCameraPositionData(NCameraPosition position, NCameraUpdateReason? reason, bool isIdle) {
     _nowCameraPositionStreamController.add(OnCameraChangedParams(
-        position: position,
-        reason: reason ?? _nowCameraPositionStreamController.currentData.reason,
-        isIdle: isIdle));
+        position: position, reason: reason ?? _nowCameraPositionStreamController.currentData.reason, isIdle: isIdle));
   }
 
   @override
@@ -385,11 +347,8 @@ class _NaverMapControllerWebImpl implements NaverMapController {
       final sw = boundsData["southWest"];
       final ne = boundsData["northEast"];
       if (sw is Map && ne is Map) {
-        web_ops.webFitBounds(_jsMap,
-            (sw["lat"] as num).toDouble(),
-            (sw["lng"] as num).toDouble(),
-            (ne["lat"] as num).toDouble(),
-            (ne["lng"] as num).toDouble());
+        web_ops.webFitBounds(_jsMap, (sw["lat"] as num).toDouble(), (sw["lng"] as num).toDouble(),
+            (ne["lat"] as num).toDouble(), (ne["lng"] as num).toDouble());
         return false;
       }
     }
@@ -405,14 +364,12 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
     final animate = payload["animation"] != null && payload["animation"] != 0;
 
-    web_ops.webUpdateCamera(_jsMap,
-        lat: lat, lng: lng, zoom: zoom, animate: animate);
+    web_ops.webUpdateCamera(_jsMap, lat: lat, lng: lng, zoom: zoom, animate: animate);
     return false;
   }
 
   @override
-  Future<void> cancelTransitions(
-      {NCameraUpdateReason reason = NCameraUpdateReason.developer}) async {
+  Future<void> cancelTransitions({NCameraUpdateReason reason = NCameraUpdateReason.developer}) async {
     // JS SDK에서 직접적인 애니메이션 취소 API 없음
   }
 
@@ -460,21 +417,17 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
   @override
   Future<NPoint> latLngToScreenLocation(NLatLng latLng) async {
-    final data = web_ops.webLatLngToScreen(
-        _jsMap, latLng.latitude, latLng.longitude);
+    final data = web_ops.webLatLngToScreen(_jsMap, latLng.latitude, latLng.longitude);
     return NPoint(data["x"]!, data["y"]!);
   }
 
   @override
   double getMeterPerDp() {
-    return getMeterPerDpAtLatitude(
-        latitude: nowCameraPosition.target.latitude,
-        zoom: nowCameraPosition.zoom);
+    return getMeterPerDpAtLatitude(latitude: nowCameraPosition.target.latitude, zoom: nowCameraPosition.zoom);
   }
 
   @override
-  double getMeterPerDpAtLatitude(
-      {required double latitude, required double zoom}) {
+  double getMeterPerDpAtLatitude({required double latitude, required double zoom}) {
     return MathUtil.calcMeterPerDp(latitude, zoom);
   }
 
@@ -486,16 +439,14 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
   @override
   Future<File> takeSnapshot({
-    @Deprecated("showControls is not supported from 1.4.0")
-    bool showControls = false,
+    @Deprecated("showControls is not supported from 1.4.0") bool showControls = false,
     int compressQuality = 80,
   }) async {
     throw UnsupportedError("takeSnapshot is not supported on web");
   }
 
   @override
-  NLocationTrackingMode get locationTrackingMode =>
-      _trackingModeStreamController.currentData;
+  NLocationTrackingMode get locationTrackingMode => _trackingModeStreamController.currentData;
 
   @override
   void setLocationTrackingMode(NLocationTrackingMode mode) {
@@ -594,12 +545,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
       case NOverlayType.polylineOverlay:
         final coordsList = payload["coords"] as List;
-        final coords = coordsList
-            .map((c) => [
-                  (c["lat"] as num).toDouble(),
-                  (c["lng"] as num).toDouble()
-                ])
-            .toList();
+        final coords = coordsList.map((c) => [(c["lat"] as num).toDouble(), (c["lng"] as num).toDouble()]).toList();
         final color = payload["color"] as int? ?? 0xFF000000;
         return web_ops.webAddPolyline(_jsMap,
             id: overlay.info.id,
@@ -612,12 +558,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
       case NOverlayType.polygonOverlay:
         final coordsList = payload["coords"] as List;
-        final coords = coordsList
-            .map((c) => [
-                  (c["lat"] as num).toDouble(),
-                  (c["lng"] as num).toDouble()
-                ])
-            .toList();
+        final coords = coordsList.map((c) => [(c["lat"] as num).toDouble(), (c["lng"] as num).toDouble()]).toList();
         final color = payload["color"] as int? ?? 0xFF000000;
         final outlineColor = payload["outlineColor"] as int? ?? 0xFF000000;
         return web_ops.webAddPolygon(_jsMap,
@@ -655,11 +596,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
           lng = (pos["lng"] as num?)?.toDouble();
         }
         return web_ops.webAddInfoWindow(_jsMap,
-            id: overlay.info.id,
-            content: text,
-            lat: lat,
-            lng: lng,
-            zIndex: payload["zIndex"] as int? ?? 0);
+            id: overlay.info.id, content: text, lat: lat, lng: lng, zIndex: payload["zIndex"] as int? ?? 0);
 
       case NOverlayType.groundOverlay:
         final boundsData = payload["bounds"];
@@ -684,12 +621,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
         // Path 오버레이를 Polyline으로 근사 구현
         final coordsList = payload["coords"] as List?;
         if (coordsList != null) {
-          final coords = coordsList
-              .map((c) => [
-                    (c["lat"] as num).toDouble(),
-                    (c["lng"] as num).toDouble()
-                  ])
-              .toList();
+          final coords = coordsList.map((c) => [(c["lat"] as num).toDouble(), (c["lng"] as num).toDouble()]).toList();
           final color = payload["color"] as int? ?? 0xFF000000;
           return web_ops.webAddPolyline(_jsMap,
               id: overlay.info.id,
@@ -764,8 +696,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
     if (payload["zoomGesturesEnable"] != null) {
       jsOptions["scrollWheel"] = payload["zoomGesturesEnable"];
       jsOptions["pinchZoom"] = payload["zoomGesturesEnable"];
-      jsOptions["disableDoubleClickZoom"] =
-          !(payload["zoomGesturesEnable"] as bool);
+      jsOptions["disableDoubleClickZoom"] = !(payload["zoomGesturesEnable"] as bool);
     }
     if (payload["rotateGesturesEnable"] != null) {
       jsOptions["rotateEnabled"] = payload["rotateGesturesEnable"];
@@ -790,12 +721,18 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
   String? _mapTypeIntToString(int mapType) {
     switch (mapType) {
-      case 0: return "NORMAL";
-      case 1: return "SATELLITE";
-      case 2: return "TERRAIN";
-      case 3: return "NORMAL";
-      case 4: return "HYBRID";
-      default: return null;
+      case 0:
+        return "NORMAL";
+      case 1:
+        return "SATELLITE";
+      case 2:
+        return "TERRAIN";
+      case 3:
+        return "NORMAL";
+      case 4:
+        return "HYBRID";
+      default:
+        return null;
     }
   }
 
@@ -877,8 +814,7 @@ class _NOverlayControllerWebImpl extends _NOverlayController {
         break;
       case "position":
         if (value is Map) {
-          web_ops.webSetMarkerPosition(jsOverlay,
-              (value["lat"] as num).toDouble(), (value["lng"] as num).toDouble());
+          web_ops.webSetMarkerPosition(jsOverlay, (value["lat"] as num).toDouble(), (value["lng"] as num).toDouble());
         }
         break;
       case "icon":

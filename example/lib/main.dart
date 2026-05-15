@@ -6,25 +6,23 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_naver_map_example/design/custom_widget.dart';
 import 'package:flutter_naver_map_example/pages/others/example_page_data.dart';
 import 'package:flutter_naver_map_example/pages/others/routes.dart';
-import 'package:flutter_naver_map_example/util/example_location_tracker.dart';
 import 'package:flutter_naver_map_example/util/overlay_portal_util.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+
 import 'design/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FlutterNaverMap().init(
-      clientId: 'dzx1zs89q6',
+      clientId: 'ahb3sdt7l3',
       onAuthFailed: (ex) {
         switch (ex) {
           case NQuotaExceededException(:final message):
             print("사용량 초과 (message: $message)");
             break;
-          case NUnauthorizedClientException() ||
-                NClientUnspecifiedException() ||
-                NAnotherAuthFailedException():
+          case NUnauthorizedClientException() || NClientUnspecifiedException() || NAnotherAuthFailedException():
             print("인증 실패: $ex");
             break;
         }
@@ -64,14 +62,12 @@ class FNMapPage extends StatefulWidget {
 
 class _FNMapPageState extends State<FNMapPage> {
   late NaverMapController mapController;
-  final _onCameraChangeStreamController =
-      StreamController<NCameraUpdateReason>.broadcast();
+  final _onCameraChangeStreamController = StreamController<NCameraUpdateReason>.broadcast();
   final _mapKey = UniqueKey();
 
   Widget mapWidget(BuildContext context, NaverMapViewOptions options) {
     final safeArea = MediaQuery.paddingOf(context);
-    final mapPadding =
-        EdgeInsets.only(top: safeArea.top, bottom: _drawerHandleHeight);
+    final mapPadding = EdgeInsets.only(top: safeArea.top, bottom: _drawerHandleHeight);
     return NaverMap(
       key: _mapKey,
       options: options.copyWith(contentPadding: mapPadding),
@@ -85,10 +81,8 @@ class _FNMapPageState extends State<FNMapPage> {
             print("[flutter] clusterMarkerBuilder: $info");
             if (clusterIcon != null) clusterMarker.setIcon(clusterIcon!);
             clusterMarker.setIsFlat(true);
-            clusterMarker.setCaption(NOverlayCaption(
-                text: info.size.toString(),
-                color: Colors.white,
-                haloColor: Colors.blueAccent));
+            clusterMarker.setCaption(
+                NOverlayCaption(text: info.size.toString(), color: Colors.white, haloColor: Colors.blueAccent));
           }),
       onMapReady: onMapReady,
       onMapLoaded: onMapLoaded,
@@ -131,8 +125,7 @@ class _FNMapPageState extends State<FNMapPage> {
 
   void onSymbolTapped(NSymbolInfo symbolInfo) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content:
-          Text("onSymbolTapped: ${symbolInfo.caption}\n${symbolInfo.position}"),
+      content: Text("onSymbolTapped: ${symbolInfo.caption}\n${symbolInfo.position}"),
     ));
   }
 
@@ -161,8 +154,7 @@ class _FNMapPageState extends State<FNMapPage> {
 
   @override
   void initState() {
-    GetIt.I.registerLazySingleton<Stream<NCameraUpdateReason>>(
-        () => _onCameraChangeStreamController.stream);
+    GetIt.I.registerLazySingleton<Stream<NCameraUpdateReason>>(() => _onCameraChangeStreamController.stream);
     GetIt.I.registerLazySingleton(() => nOverlayInfoOverlayPortalController);
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -173,8 +165,7 @@ class _FNMapPageState extends State<FNMapPage> {
               widget: Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
-                      color: Colors.blueAccent, shape: BoxShape.circle)),
+                  decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle)),
               context: context)
           .then((value) {
         clusterIcon = value;
@@ -203,8 +194,7 @@ class _FNMapPageState extends State<FNMapPage> {
           bottom: drawerHeight - _drawerHandleHeight,
           child: StreamBuilder(
               stream: widget.sharedMapViewOptionChangeStream,
-              builder: (context, snapshot) => mapWidget(
-                  context, snapshot.data ?? const NaverMapViewOptions())),
+              builder: (context, snapshot) => mapWidget(context, snapshot.data ?? const NaverMapViewOptions())),
         ),
         _bottomDrawer(context),
         _overlayPortalSection(),
@@ -229,32 +219,25 @@ class _FNMapPageState extends State<FNMapPage> {
       },
       builder: (state, setState, context) => Column(children: [
             _headerSection(context),
-            Expanded(
-                flex: initMainDrawerHeight != null ? 1 : 0,
-                child: widget.bottomSheetPage),
+            Expanded(flex: initMainDrawerHeight != null ? 1 : 0, child: widget.bottomSheetPage),
             // todo: prevent scroll gesture when state != DrawerState.opened
           ]));
 
   Widget _overlayPortalSection() => OverlayPortal(
       controller: nOverlayInfoOverlayPortalController,
-      overlayChildBuilder: (context) =>
-          nOverlayInfoOverlayPortalController.builder(context, mapController));
+      overlayChildBuilder: (context) => nOverlayInfoOverlayPortalController.builder(context, mapController));
 
   Widget _headerSection(BuildContext context) => StreamBuilder(
       stream: widget.pageObserveStream,
       builder: (context, snapshot) {
-        return snapshot.data != null
-            ? getHeaderByPageData(snapshot.data!)
-            : getMainHeader(context);
+        return snapshot.data != null ? getHeaderByPageData(snapshot.data!) : getMainHeader(context);
       });
 
   Widget getMainHeader(BuildContext context) => BaseDrawerHeader(
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Text("지도 기능 둘러보기", style: getTextTheme(context).titleLarge),
         const SizedBox(width: 8),
-        const Flexible(
-            child: Align(
-                alignment: Alignment.centerRight, child: VersionInfoWidget())),
+        const Flexible(child: Align(alignment: Alignment.centerRight, child: VersionInfoWidget())),
       ]));
 
   Widget getHeaderByPageData(ExamplePageData data) => BaseDrawerHeader(
@@ -289,12 +272,9 @@ class _FNMapPageState extends State<FNMapPage> {
                 setStateButton(() {});
               },
               child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                   child: Text(drawerState == DrawerState.opened ? "접기" : "펼치기",
-                      style: getTextTheme(context)
-                          .labelSmall
-                          ?.copyWith(color: getColorTheme(context).primary))));
+                      style: getTextTheme(context).labelSmall?.copyWith(color: getColorTheme(context).primary))));
         }));
   }
 }
