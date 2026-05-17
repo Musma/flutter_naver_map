@@ -239,8 +239,10 @@ String _markerVisualHtml({
   required double angle,
 }) {
   final sizeStyle = iconWidth != null && iconHeight != null ? "width:${iconWidth}px; height:${iconHeight}px;" : "";
-  final translateX = (anchorX * 100).toStringAsFixed(4).replaceFirst(RegExp(r"0+$"), "").replaceFirst(RegExp(r"\.$"), "");
-  final translateY = (anchorY * 100).toStringAsFixed(4).replaceFirst(RegExp(r"0+$"), "").replaceFirst(RegExp(r"\.$"), "");
+  final translateX =
+      (anchorX * 100).toStringAsFixed(4).replaceFirst(RegExp(r"0+$"), "").replaceFirst(RegExp(r"\.$"), "");
+  final translateY =
+      (anchorY * 100).toStringAsFixed(4).replaceFirst(RegExp(r"0+$"), "").replaceFirst(RegExp(r"\.$"), "");
   final rotation = angle == 0 ? "" : " rotate(${angle}deg)";
   final visualStyle =
       "position:absolute; left:0; top:0; $sizeStyle opacity:$alpha; transform:translate(-$translateX%, -$translateY%)$rotation; transform-origin:center center;";
