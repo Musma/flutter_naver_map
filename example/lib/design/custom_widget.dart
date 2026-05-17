@@ -21,15 +21,11 @@ class InnerSimpleTitle extends StatelessWidget {
     if (direction == Axis.vertical) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(title,
-            style: getTextTheme(context).titleMedium,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.fade),
+            style: getTextTheme(context).titleMedium, maxLines: 1, softWrap: false, overflow: TextOverflow.fade),
         if (description != null)
           Padding(
               padding: const EdgeInsets.only(top: 2),
-              child:
-                  Text(description!, style: getTextTheme(context).bodySmall)),
+              child: Text(description!, style: getTextTheme(context).bodySmall)),
       ]);
     } else {
       return Row(
@@ -40,8 +36,7 @@ class InnerSimpleTitle extends StatelessWidget {
             if (description != null)
               Padding(
                   padding: const EdgeInsets.only(left: 8, bottom: 2),
-                  child: Text(description!,
-                      style: getTextTheme(context).bodySmall)),
+                  child: Text(description!, style: getTextTheme(context).bodySmall)),
           ]);
     }
   }
@@ -52,9 +47,7 @@ class SelectorWithTitle extends StatelessWidget {
   final String description;
   final EasySelectorWidget Function(BuildContext context) selector;
 
-  const SelectorWithTitle(this.title,
-      {Key? key, required this.description, required this.selector})
-      : super(key: key);
+  const SelectorWithTitle(this.title, {Key? key, required this.description, required this.selector}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +55,7 @@ class SelectorWithTitle extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
         child: Row(children: [
-          Expanded(
-              child: InnerSimpleTitle(
-                  title: title,
-                  description: description,
-                  direction: Axis.vertical)),
+          Expanded(child: InnerSimpleTitle(title: title, description: description, direction: Axis.vertical)),
           Expanded(flex: selector.expand ? 2 : 0, child: selector),
         ]));
   }
@@ -76,8 +65,7 @@ mixin EasySelectorWidget on Widget {
   bool get expand => true;
 }
 
-class EasyDropdown<T extends Enum> extends StatelessWidget
-    with EasySelectorWidget {
+class EasyDropdown<T extends Enum> extends StatelessWidget with EasySelectorWidget {
   final List<T> items;
   final T value;
   final void Function(T newValue) onChanged;
@@ -92,9 +80,7 @@ class EasyDropdown<T extends Enum> extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-          color: getColorTheme(context).outline,
-          borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: getColorTheme(context).outline, borderRadius: BorderRadius.circular(8)),
       padding: const EdgeInsets.only(right: 8),
       child: DropdownButton(
           dropdownColor: getColorTheme(context).surface,
@@ -108,17 +94,13 @@ class EasyDropdown<T extends Enum> extends StatelessWidget
                   alignment: Alignment.centerLeft,
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(e.name,
-                      style: getTextTheme(context).bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis)))
+                      style: getTextTheme(context).bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis)))
               .toList(),
           items: items
               .map((e) => DropdownMenuItem(
                   value: e,
                   child: Text(e.name,
-                      style: getTextTheme(context).bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis)))
+                      style: getTextTheme(context).bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis)))
               .toList(),
           value: value,
           onChanged: (v) => onChanged(v as T)),
@@ -157,22 +139,18 @@ class EasySlider extends StatelessWidget with EasySelectorWidget {
         width: width,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onDoubleTapDown:
-              defaultValue != null ? (_) => onChanged(defaultValue!) : null,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          onDoubleTapDown: defaultValue != null ? (_) => onChanged(defaultValue!) : null,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: SliderTheme(
                   data: SliderThemeData(
                       trackHeight: 8,
                       thumbColor: Theme.of(context).colorScheme.primary,
-                      activeTrackColor:
-                          Theme.of(context).colorScheme.primaryContainer,
+                      activeTrackColor: Theme.of(context).colorScheme.primaryContainer,
                       inactiveTrackColor: Theme.of(context).colorScheme.outline,
                       activeTickMarkColor: Colors.white,
-                      thumbShape:
-                          const RoundSliderThumbShape(enabledThumbRadius: 10),
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                       overlayShape: SliderComponentShape.noThumb,
                       showValueIndicator: ShowValueIndicator.onDrag),
                   child: Slider(
@@ -181,31 +159,25 @@ class EasySlider extends StatelessWidget with EasySelectorWidget {
                       value: value,
                       divisions: divisions,
                       // 8배수 단위로 맞추고 싶음.
-                      label:
-                          "${showAsInt ? value.round() : value.toStringAsFixed(floatingPoint)}",
+                      label: "${showAsInt ? value.round() : value.toStringAsFixed(floatingPoint)}",
                       onChanged: onChanged)),
             ),
             Stack(
               children: [
                 Center(
-                  child: Text(
-                      showAsInt
-                          ? "${value.toInt()}"
-                          : value.toStringAsFixed(floatingPoint),
-                      style: getTextTheme(context).bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: getColorTheme(context).primary)),
+                  child: Text(showAsInt ? "${value.toInt()}" : value.toStringAsFixed(floatingPoint),
+                      style: getTextTheme(context)
+                          .bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w700, color: getColorTheme(context).primary)),
                 ),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(
-                          showAsInt ? "${min.toInt()}" : min.toStringAsFixed(1),
+                      Text(showAsInt ? "${min.toInt()}" : min.toStringAsFixed(1),
                           style: getTextTheme(context).bodySmall),
-                      Text(
-                          showAsInt ? "${max.toInt()}" : max.toStringAsFixed(1),
+                      Text(showAsInt ? "${max.toInt()}" : max.toStringAsFixed(1),
                           style: getTextTheme(context).bodySmall),
                     ]),
               ],
@@ -237,9 +209,7 @@ class TextSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-        color: value
-            ? getColorTheme(context).primaryContainer
-            : getColorTheme(context).outline,
+        color: value ? getColorTheme(context).primaryContainer : getColorTheme(context).outline,
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -251,18 +221,13 @@ class TextSwitcher extends StatelessWidget {
                 Text(title,
                     style: enable
                         ? getTextTheme(context).titleMedium
-                        : getTextTheme(context)
-                            .titleMedium
-                            ?.copyWith(color: getColorTheme(context).secondary),
+                        : getTextTheme(context).titleMedium?.copyWith(color: getColorTheme(context).secondary),
                     overflow: TextOverflow.fade,
                     softWrap: false,
                     maxLines: 1),
                 const SizedBox(height: 2),
                 Text(description,
-                    style: getTextTheme(context).bodySmall,
-                    overflow: TextOverflow.fade,
-                    softWrap: false,
-                    maxLines: 1),
+                    style: getTextTheme(context).bodySmall, overflow: TextOverflow.fade, softWrap: false, maxLines: 1),
               ],
             )));
   }
@@ -325,24 +290,19 @@ class SimpleTitle extends StatelessWidget {
         width: double.infinity,
         padding: padding,
         child: direction == Axis.horizontal
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                    Text(title, style: getTextTheme(context).titleMedium),
-                    if (description != null)
-                      Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: Text(description!,
-                              style: getTextTheme(context).bodySmall)),
-                  ])
+            ? Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+                Text(title, style: getTextTheme(context).titleMedium),
+                if (description != null)
+                  Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(description!, style: getTextTheme(context).bodySmall)),
+              ])
             : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(title, style: getTextTheme(context).titleMedium),
                 if (description != null)
                   Padding(
                       padding: const EdgeInsets.only(top: 4),
-                      child: Text(description!,
-                          style: getTextTheme(context).bodySmall)),
+                      child: Text(description!, style: getTextTheme(context).bodySmall)),
               ]));
   }
 }
@@ -371,18 +331,14 @@ class SliverTitle extends StatelessWidget {
                 if (description != null)
                   Padding(
                       padding: const EdgeInsets.only(left: 4),
-                      child: Text(description!,
-                          style: getTextTheme(context).bodySmall)),
-              ],
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic)
+                      child: Text(description!, style: getTextTheme(context).bodySmall)),
+              ], crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic)
             : SliverColumn([
                 Text(title, style: getTextTheme(context).titleMedium),
                 if (description != null)
                   Padding(
                       padding: const EdgeInsets.only(top: 4),
-                      child: Text(description!,
-                          style: getTextTheme(context).bodySmall)),
+                      child: Text(description!, style: getTextTheme(context).bodySmall)),
               ], crossAxisAlignment: CrossAxisAlignment.start));
   }
 }
@@ -395,9 +351,7 @@ class SliverColumn extends SliverToBoxAdapter {
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
   }) : super(
             child: Column(
-                mainAxisAlignment: mainAxisAlignment,
-                crossAxisAlignment: crossAxisAlignment,
-                children: children));
+                mainAxisAlignment: mainAxisAlignment, crossAxisAlignment: crossAxisAlignment, children: children));
 }
 
 class SliverRow extends SliverToBoxAdapter {
@@ -456,8 +410,7 @@ class BottomPadding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom));
+    return Padding(padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom));
   }
 }
 
@@ -466,9 +419,7 @@ class SliverBottomPadding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverPadding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom));
+    return SliverPadding(padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom));
   }
 }
 
@@ -497,27 +448,24 @@ class HalfActionButton extends StatelessWidget {
         child: InkWell(
             onTap: action,
             child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 child: Row(children: [
                   Icon(icon, color: getColorTheme(context).primary, size: 22),
                   const SizedBox(width: 10),
                   Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Text(title,
-                            style: getTextTheme(context).labelMedium,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            maxLines: 1),
-                        const SizedBox(height: 2),
-                        Text(description,
-                            style: getTextTheme(context).bodySmall,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            maxLines: 1),
-                      ])),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(title,
+                        style: getTextTheme(context).labelMedium,
+                        overflow: TextOverflow.fade,
+                        softWrap: false,
+                        maxLines: 1),
+                    const SizedBox(height: 2),
+                    Text(description,
+                        style: getTextTheme(context).bodySmall,
+                        overflow: TextOverflow.fade,
+                        softWrap: false,
+                        maxLines: 1),
+                  ])),
                 ]))));
   }
 }
@@ -551,7 +499,7 @@ class HalfActionButtonGrid extends StatelessWidget {
       }
     }
 
-    return Column(children: rowCellAndGapWidgets);
+    return SingleChildScrollView(child: Column(children: rowCellAndGapWidgets));
   }
 }
 
@@ -592,13 +540,9 @@ class SmallButton extends StatelessWidget {
                       if (icon != null)
                         Padding(
                           padding: const EdgeInsets.only(right: 4),
-                          child: Icon(icon,
-                              color: textColor ?? Colors.white, size: 16),
+                          child: Icon(icon, color: textColor ?? Colors.white, size: 16),
                         ),
-                      Text(text,
-                          style: getTextTheme(context)
-                              .labelSmall
-                              ?.copyWith(color: textColor)),
+                      Text(text, style: getTextTheme(context).labelSmall?.copyWith(color: textColor)),
                     ]))));
   }
 }
@@ -617,11 +561,7 @@ class BaseDrawerHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         decoration: BoxDecoration(
-            border: Border(
-                bottom: BorderSide(
-                    color:
-                        getColorTheme(context).onSurface.withOpacity(0.28),
-                    width: 0.2))),
+            border: Border(bottom: BorderSide(color: getColorTheme(context).onSurface.withOpacity(0.28), width: 0.2))),
         padding: padding,
         child: child);
   }
@@ -638,9 +578,14 @@ class VersionInfoWidget extends StatelessWidget {
             color: !kIsWeb && defaultTargetPlatform == TargetPlatform.android ? Colors.green : Colors.black,
             borderRadius: BorderRadius.circular(4)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(!kIsWeb && defaultTargetPlatform == TargetPlatform.android ? Icons.android
-              : kIsWeb ? Icons.web : Icons.apple,
-              color: Colors.white, size: 14),
+          Icon(
+              !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+                  ? Icons.android
+                  : kIsWeb
+                      ? Icons.web
+                      : Icons.apple,
+              color: Colors.white,
+              size: 14),
           const SizedBox(width: 2),
           Flexible(
               child: Text(kIsWeb ? "Web" : defaultTargetPlatform.name,
