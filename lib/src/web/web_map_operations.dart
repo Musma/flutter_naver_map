@@ -6,7 +6,8 @@ import "naver_maps_js_interop.dart";
 void setupWebMapEventListeners({
   required dynamic jsMap,
   required void Function(double lat, double lng, double x, double y) onMapTapped,
-  required void Function(double lat, double lng, double zoom, double tilt, double bearing, bool animated) onCameraChange,
+  required void Function(double lat, double lng, double zoom, double tilt, double bearing, bool animated)
+      onCameraChange,
   required void Function(double lat, double lng, double zoom, double tilt, double bearing) onCameraIdle,
 }) {
   final map = jsMap as JSNaverMap;
@@ -105,7 +106,8 @@ Map<String, double> webLatLngToScreen(dynamic jsMap, double lat, double lng) {
   };
 }
 
-void webUpdateCamera(dynamic jsMap, {
+void webUpdateCamera(
+  dynamic jsMap, {
   double? lat,
   double? lng,
   double? zoom,
@@ -143,20 +145,26 @@ void webFitBounds(dynamic jsMap, double swLat, double swLng, double neLat, doubl
 void webSetMapOptions(dynamic jsMap, Map<String, dynamic> options) {
   final map = jsMap as JSNaverMap;
   for (final entry in options.entries) {
+    final key = entry.key;
     final value = entry.value;
+
     if (value is bool) {
-      map.setOptions(entry.key.toJS, value.toJS);
+      map.setOptions(key.toJS, value.toJS);
     } else if (value is int) {
-      map.setOptions(entry.key.toJS, value.toDouble().toJS);
+      map.setOptions(key.toJS, value.toDouble().toJS);
     } else if (value is double) {
-      map.setOptions(entry.key.toJS, value.toJS);
+      map.setOptions(key.toJS, value.toJS);
     } else if (value is String) {
-      map.setOptions(entry.key.toJS, value.toJS);
+      map.setOptions(key.toJS, value.toJS);
+    }
+    if (key == "mapTypeId") {
+      map.setMapTypeId(value.toString().toJS);
     }
   }
 }
 
-dynamic webAddMarker(dynamic jsMap, {
+dynamic webAddMarker(
+  dynamic jsMap, {
   required String id,
   required double lat,
   required double lng,
@@ -187,9 +195,7 @@ dynamic webAddMarker(dynamic jsMap, {
       icon = JSImageIcon(
         url: iconUrl.toJS,
         scaledSize: createSize(width, height),
-        anchor: anchorX != null && anchorY != null
-            ? createPoint(anchorX * width, anchorY * height)
-            : null,
+        anchor: anchorX != null && anchorY != null ? createPoint(anchorX * width, anchorY * height) : null,
       ) as JSObject;
     } else {
       icon = JSImageIcon(url: iconUrl.toJS) as JSObject;
@@ -202,7 +208,8 @@ dynamic webAddMarker(dynamic jsMap, {
   return marker;
 }
 
-dynamic webAddPolyline(dynamic jsMap, {
+dynamic webAddPolyline(
+  dynamic jsMap, {
   required String id,
   required List<List<double>> coords,
   required int color,
@@ -212,10 +219,7 @@ dynamic webAddPolyline(dynamic jsMap, {
   bool clickable = false,
 }) {
   final map = jsMap as JSNaverMap;
-  final path = coords
-      .map((c) => createLatLng(c[0], c[1]))
-      .toList()
-      .toJS;
+  final path = coords.map((c) => createLatLng(c[0], c[1])).toList().toJS;
 
   final polyline = JSPolyline(JSPolylineOptions(
     path: path,
@@ -230,7 +234,8 @@ dynamic webAddPolyline(dynamic jsMap, {
   return polyline;
 }
 
-dynamic webAddPolygon(dynamic jsMap, {
+dynamic webAddPolygon(
+  dynamic jsMap, {
   required String id,
   required List<List<double>> coords,
   required int color,
@@ -241,9 +246,7 @@ dynamic webAddPolygon(dynamic jsMap, {
   bool clickable = false,
 }) {
   final map = jsMap as JSNaverMap;
-  final paths = [
-    coords.map((c) => createLatLng(c[0], c[1])).toList().toJS
-  ].toJS;
+  final paths = [coords.map((c) => createLatLng(c[0], c[1])).toList().toJS].toJS;
 
   final polygon = JSPolygon(JSPolygonOptions(
     paths: paths,
@@ -260,7 +263,8 @@ dynamic webAddPolygon(dynamic jsMap, {
   return polygon;
 }
 
-dynamic webAddCircle(dynamic jsMap, {
+dynamic webAddCircle(
+  dynamic jsMap, {
   required String id,
   required double lat,
   required double lng,
@@ -289,7 +293,8 @@ dynamic webAddCircle(dynamic jsMap, {
   return circle;
 }
 
-dynamic webAddInfoWindow(dynamic jsMap, {
+dynamic webAddInfoWindow(
+  dynamic jsMap, {
   required String id,
   required String content,
   double? lat,
@@ -313,7 +318,8 @@ dynamic webAddInfoWindow(dynamic jsMap, {
   return infoWindow;
 }
 
-dynamic webAddGroundOverlay(dynamic jsMap, {
+dynamic webAddGroundOverlay(
+  dynamic jsMap, {
   required String id,
   required String imageUrl,
   required double swLat,
@@ -380,10 +386,7 @@ void webSetMarkerIcon(dynamic jsMarker, String? iconUrl, double? width, double? 
 }
 
 void webSetPolylineCoords(dynamic jsPolyline, List<List<double>> coords) {
-  final path = coords
-      .map((c) => createLatLng(c[0], c[1]))
-      .toList()
-      .toJS;
+  final path = coords.map((c) => createLatLng(c[0], c[1])).toList().toJS;
   (jsPolyline as JSPolyline).setPath(path);
 }
 

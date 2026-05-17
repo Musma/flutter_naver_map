@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
 import "dart:js_interop";
+
 import "package:web/web.dart" as web;
 
 /* ───────────────── Global Accessors ───────────────── */

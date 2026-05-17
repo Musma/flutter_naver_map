@@ -714,7 +714,12 @@ class _NaverMapControllerWebImpl implements NaverMapController {
     if (mapType is int) {
       final typeStr = _mapTypeIntToString(mapType);
       if (typeStr != null) {
-        web_ops.webSetMapOptions(_jsMap, {"mapTypeId": typeStr});
+        web_ops.webSetMapOptions(_jsMap, {"mapTypeId": typeStr.toLowerCase()});
+      }
+    } else if (mapType is String) {
+      final typeStr = _mapTypeString(mapType.toLowerCase());
+      if (typeStr != null) {
+        web_ops.webSetMapOptions(_jsMap, {"mapTypeId": typeStr.toLowerCase()});
       }
     }
   }
@@ -731,6 +736,26 @@ class _NaverMapControllerWebImpl implements NaverMapController {
         return "NORMAL";
       case 4:
         return "HYBRID";
+      default:
+        return null;
+    }
+  }
+
+  String? _mapTypeString(String mapType) {
+    switch (mapType) {
+      case "basic":
+        return "normal";
+      case "navi":
+        return "normal";
+      case "satellite":
+        return "satellite";
+      case "hybrid":
+      case "navihybrid":
+        return "hybrid";
+      case "terrain":
+        return "terrain";
+      case "none":
+        return "normal";
       default:
         return null;
     }

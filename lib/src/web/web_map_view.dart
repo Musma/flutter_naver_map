@@ -130,6 +130,13 @@ class _WebNaverMapViewState extends State<WebNaverMapView> {
         if (mapTypeId != null) {
           jsMap.setMapTypeId(mapTypeId.toJS);
         }
+      } else if (mapTypeRaw is String) {
+        final mapTypeId = _mapTypeString(mapTypeRaw.toLowerCase());
+        if (mapTypeId != null) {
+          jsMap.setMapTypeId(mapTypeId.toJS);
+        }
+      } else {
+        debugPrint("[flutter_naver_map] No valid mapType provided, using default");
       }
       _jsMap = jsMap;
 
@@ -152,6 +159,26 @@ class _WebNaverMapViewState extends State<WebNaverMapView> {
         return "NORMAL"; // navi → NORMAL fallback
       case 4:
         return "HYBRID";
+      default:
+        return null;
+    }
+  }
+
+  String? _mapTypeString(String mapType) {
+    switch (mapType) {
+      case "basic":
+        return "normal";
+      case "navi":
+        return "normal";
+      case "satellite":
+        return "satellite";
+      case "hybrid":
+      case "navihybrid":
+        return "hybrid";
+      case "terrain":
+        return "terrain";
+      case "none":
+        return "normal";
       default:
         return null;
     }
