@@ -1,3 +1,4 @@
+import "dart:convert";
 import "dart:js_interop";
 import "dart:js_interop_unsafe";
 
@@ -163,6 +164,176 @@ void webSetMapOptions(dynamic jsMap, Map<String, dynamic> options) {
   }
 }
 
+const _htmlEscape = HtmlEscape();
+
+bool _hasCaption(Map<String, dynamic>? caption) {
+  final text = caption?["text"]?.toString();
+  return text != null && text.isNotEmpty;
+}
+
+String _cssColor(dynamic rawColor, {required String fallbackHex, required double fallbackOpacity}) {
+  if (rawColor is int) {
+    final hex = colorToHexString(rawColor);
+    final opacity = colorToOpacity(rawColor);
+    return "rgba(${int.parse(hex.substring(1, 3), radix: 16)}, ${int.parse(hex.substring(3, 5), radix: 16)}, ${int.parse(hex.substring(5, 7), radix: 16)}, $opacity)";
+  }
+  return "rgba(${int.parse(fallbackHex.substring(1, 3), radix: 16)}, ${int.parse(fallbackHex.substring(3, 5), radix: 16)}, ${int.parse(fallbackHex.substring(5, 7), radix: 16)}, $fallbackOpacity)";
+}
+
+String _captionTextHtml(Map<String, dynamic> caption) {
+  final text = _htmlEscape.convert(caption["text"]?.toString() ?? "");
+  final textSize = (caption["textSize"] as num?)?.toDouble() ?? 12.0;
+  final requestWidth = (caption["requestWidth"] as num?)?.toDouble() ?? 0;
+  final color = _cssColor(caption["color"], fallbackHex: "#000000", fallbackOpacity: 1);
+  final haloColor = _cssColor(caption["haloColor"], fallbackHex: "#FFFFFF", fallbackOpacity: 1);
+  final wrapStyle = requestWidth > 0
+      ? "max-width:${requestWidth}px; white-space:normal; word-break:keep-all;"
+      : "white-space:nowrap;";
+
+  return "<div style=\"font-size:${textSize}px; font-weight:600; line-height:1.2; color:$color; text-align:center; $wrapStyle text-shadow:-1px -1px 0 $haloColor, 1px -1px 0 $haloColor, -1px 1px 0 $haloColor, 1px 1px 0 $haloColor;\">$text</div>";
+}
+
+String _captionContainerStyle(String align, double iconWidth, double iconHeight, double anchorXPx,
+    double anchorYPx, double captionOffset) {
+  final iconLeft = -anchorXPx;
+  final iconTop = -anchorYPx;
+  final centerX = iconLeft + (iconWidth / 2);
+  final centerY = iconTop + (iconHeight / 2);
+  final right = iconLeft + iconWidth;
+  final bottom = iconTop + iconHeight;
+
+  switch (align) {
+    case "top":
+      return "left:${centerX}px; top:${iconTop - captionOffset}px; transform:translate(-50%, -100%);";
+    case "left":
+      return "left:${iconLeft - captionOffset}px; top:${centerY}px; transform:translate(-100%, -50%);";
+    case "right":
+      return "left:${right + captionOffset}px; top:${centerY}px; transform:translate(0, -50%);";
+    case "center":
+      return "left:${centerX}px; top:${centerY}px; transform:translate(-50%, -50%);";
+    case "topLeft":
+      return "left:${iconLeft - captionOffset}px; top:${iconTop - captionOffset}px; transform:translate(-100%, -100%);";
+    case "topRight":
+      return "left:${right + captionOffset}px; top:${iconTop - captionOffset}px; transform:translate(0, -100%);";
+    case "bottomLeft":
+      return "left:${iconLeft - captionOffset}px; top:${bottom + captionOffset}px; transform:translate(-100%, 0);";
+    case "bottomRight":
+      return "left:${right + captionOffset}px; top:${bottom + captionOffset}px; transform:translate(0, 0);";
+    case "bottom":
+    default:
+      return "left:${centerX}px; top:${bottom + captionOffset}px; transform:translate(-50%, 0);";
+  }
+}
+
+String _defaultMarkerHtml(double width, double height) {
+  return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"$width\" height=\"$height\" viewBox=\"0 0 40 48\" style=\"display:block;\"><path fill=\"#1f6feb\" d=\"M20 0C9.506 0 1 8.506 1 19c0 13.25 15.955 27.613 18.585 29.894a.667.667 0 0 0 .83 0C23.045 46.613 39 32.25 39 19 39 8.506 30.494 0 20 0z\"/><circle cx=\"20\" cy=\"19\" r=\"8\" fill=\"#fff\"/></svg>";
+}
+
+String _markerVisualHtml({
+  required String? iconUrl,
+  required double iconWidth,
+  required double iconHeight,
+  required double anchorXPx,
+  required double anchorYPx,
+  required double alpha,
+  required double angle,
+}) {
+  final visualStyle = "position:absolute; left:${-anchorXPx}px; top:${-anchorYPx}px; width:${iconWidth}px; height:${iconHeight}px; opacity:$alpha; transform:${angle == 0 ? "none" : "rotate(${angle}deg)"}; transform-origin:center center;";
+
+  if (iconUrl != null && iconUrl.isNotEmpty) {
+    final escapedUrl = _htmlEscape.convert(iconUrl);
+    return "<img src=\"$escapedUrl\" style=\"$visualStyle display:block; pointer-events:none;\" alt=\"\" />";
+  }
+
+  return "<div style=\"$visualStyle pointer-events:none;\">${_defaultMarkerHtml(iconWidth, iconHeight)}</div>";
+}
+
+JSAny? _buildMarkerIcon({
+  String? iconUrl,
+  double? width,
+  double? height,
+  double? anchorX,
+  double? anchorY,
+  double alpha = 1.0,
+  double angle = 0,
+  Map<String, dynamic>? caption,
+  Map<String, dynamic>? subCaption,
+  List<String> captionAligns = const ["bottom"],
+  double captionOffset = 0,
+}) {
+  final hasCaption = _hasCaption(caption) || _hasCaption(subCaption);
+  if (!hasCaption) {
+    if (iconUrl == null) return null;
+    if (width != null && height != null) {
+      return JSImageIcon(
+        url: iconUrl.toJS,
+        scaledSize: createSize(width, height),
+        anchor: anchorX != null && anchorY != null ? createPoint(anchorX * width, anchorY * height) : null,
+      ) as JSAny;
+    }
+    return iconUrl.toJS;
+  }
+
+  final iconWidth = width != null && width > 0 ? width : 40.0;
+  final iconHeight = height != null && height > 0 ? height : 48.0;
+  final anchorXPx = (anchorX ?? 0.5) * iconWidth;
+  final anchorYPx = (anchorY ?? 1.0) * iconHeight;
+  final align = captionAligns.isEmpty ? "bottom" : captionAligns.first;
+  final captionStyle = _captionContainerStyle(align, iconWidth, iconHeight, anchorXPx, anchorYPx, captionOffset);
+  final captionsHtml = <String>[];
+
+  if (_hasCaption(caption)) {
+    captionsHtml.add(_captionTextHtml(caption!));
+  }
+  if (_hasCaption(subCaption)) {
+    captionsHtml.add(_captionTextHtml(subCaption!));
+  }
+
+  final html = "<div style=\"position:relative; width:0; height:0; pointer-events:none;\">${_markerVisualHtml(iconUrl: iconUrl, iconWidth: iconWidth, iconHeight: iconHeight, anchorXPx: anchorXPx, anchorYPx: anchorYPx, alpha: alpha, angle: angle)}<div style=\"position:absolute; display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; $captionStyle\">${captionsHtml.join()}</div></div>";
+
+  return JSHtmlIcon(content: html.toJS) as JSAny;
+}
+
+void webUpdateMarker(
+  dynamic jsMarker, {
+  String? iconUrl,
+  double? width,
+  double? height,
+  double? anchorX,
+  double? anchorY,
+  double alpha = 1.0,
+  double angle = 0,
+  Map<String, dynamic>? caption,
+  Map<String, dynamic>? subCaption,
+  List<String> captionAligns = const ["bottom"],
+  double captionOffset = 0,
+}) {
+  final marker = jsMarker as JSMarker;
+  final icon = _buildMarkerIcon(
+    iconUrl: iconUrl,
+    width: width,
+    height: height,
+    anchorX: anchorX,
+    anchorY: anchorY,
+    alpha: alpha,
+    angle: angle,
+    caption: caption,
+    subCaption: subCaption,
+    captionAligns: captionAligns,
+    captionOffset: captionOffset,
+  );
+
+  if (icon == null) {
+    marker.setOptions("icon".toJS, null);
+    marker.setTitle("".toJS);
+    return;
+  }
+
+  marker.setIcon(icon);
+  final title = caption?["text"]?.toString() ?? subCaption?["text"]?.toString() ?? "";
+  marker.setTitle(title.toJS);
+}
+
 dynamic webAddMarker(
   dynamic jsMap, {
   required String id,
@@ -175,6 +346,10 @@ dynamic webAddMarker(
   double? anchorY,
   double alpha = 1.0,
   double angle = 0,
+  Map<String, dynamic>? caption,
+  Map<String, dynamic>? subCaption,
+  List<String> captionAligns = const ["bottom"],
+  double captionOffset = 0,
   bool visible = true,
   int zIndex = 0,
   bool clickable = false,
@@ -186,24 +361,24 @@ dynamic webAddMarker(
     position: createLatLng(lat, lng),
     visible: visible.toJS,
     zIndex: zIndex.toDouble().toJS,
-    clickable: true.toJS,
+    clickable: clickable.toJS,
   );
 
-  if (iconUrl != null) {
-    JSObject icon;
-    if (width != null && height != null) {
-      icon = JSImageIcon(
-        url: iconUrl.toJS,
-        scaledSize: createSize(width, height),
-        anchor: anchorX != null && anchorY != null ? createPoint(anchorX * width, anchorY * height) : null,
-      ) as JSObject;
-    } else {
-      icon = JSImageIcon(url: iconUrl.toJS) as JSObject;
-    }
-    (options as JSObject).setProperty("icon".toJS, icon);
-  }
-
   final marker = JSMarker(options);
+  webUpdateMarker(
+    marker,
+    iconUrl: iconUrl,
+    width: width,
+    height: height,
+    anchorX: anchorX,
+    anchorY: anchorY,
+    alpha: alpha,
+    angle: angle,
+    caption: caption,
+    subCaption: subCaption,
+    captionAligns: captionAligns,
+    captionOffset: captionOffset,
+  );
   marker.setMap(map);
   return marker;
 }

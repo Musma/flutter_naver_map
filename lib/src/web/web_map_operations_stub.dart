@@ -49,6 +49,10 @@ dynamic webAddMarker(dynamic jsMap, {
   double? anchorY,
   double alpha = 1.0,
   double angle = 0,
+  Map<String, dynamic>? caption,
+  Map<String, dynamic>? subCaption,
+  List<String> captionAligns = const ["bottom"],
+  double captionOffset = 0,
   bool visible = true,
   int zIndex = 0,
   bool clickable = false,
@@ -137,6 +141,22 @@ void webSetMarkerPosition(dynamic jsMarker, double lat, double lng) {
 }
 
 void webSetMarkerIcon(dynamic jsMarker, String? iconUrl, double? width, double? height) {
+  throw UnsupportedError("Not supported");
+}
+
+void webUpdateMarker(dynamic jsMarker, {
+  String? iconUrl,
+  double? width,
+  double? height,
+  double? anchorX,
+  double? anchorY,
+  double alpha = 1.0,
+  double angle = 0,
+  Map<String, dynamic>? caption,
+  Map<String, dynamic>? subCaption,
+  List<String> captionAligns = const ["bottom"],
+  double captionOffset = 0,
+}) {
   throw UnsupportedError("Not supported");
 }
 

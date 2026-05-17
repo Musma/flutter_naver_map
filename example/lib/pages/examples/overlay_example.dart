@@ -2,10 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+
+import '../../design/custom_widget.dart';
 import '../../design/theme.dart';
 import '../../util/overlay_portal_util.dart';
 import '../../util/string_util.dart';
-import '../../design/custom_widget.dart';
 import '../others/example_page_data.dart';
 
 class NOverlayExample extends StatefulWidget {
@@ -39,15 +40,14 @@ class _NOverlayExampleState extends State<NOverlayExample> {
 
   void attachOverlay() async {
     final cameraPosition = mapController.nowCameraPosition;
-    final overlay = NOverlayMakerUtil.makeOverlay(
-        type: willCreateOverlayType, cameraPosition: cameraPosition);
+    final overlay = NOverlayMakerUtil.makeOverlay(type: willCreateOverlayType, cameraPosition: cameraPosition);
     final latLng = cameraPosition.target;
     for (final o in overlay) {
       final position = o is NClusterableMarker ? o.position : latLng;
       o.setOnTapListener((overlay) {
-        mapController.latLngToScreenLocation(position).then((point) =>
-            addFlutterFloatingOverlay(
-                point: point, overlay: overlay, latLng: latLng));
+        mapController
+            .latLngToScreenLocation(position)
+            .then((point) => addFlutterFloatingOverlay(point: point, overlay: overlay, latLng: latLng));
       });
     }
     mapController.addOverlayAll(overlay.toSet());
@@ -59,8 +59,8 @@ class _NOverlayExampleState extends State<NOverlayExample> {
     required NLatLng latLng,
   }) {
     widget.nOverlayInfoOverlayPortalController.openWithWidget(
-        screenPointStream: widget.onCameraChangeStream.asyncMap((event) async =>
-            await mapController.latLngToScreenLocation(latLng)),
+        screenPointStream:
+            widget.onCameraChangeStream.asyncMap((event) async => await mapController.latLngToScreenLocation(latLng)),
         builder: (context, mapController, controller, back) {
           Widget header() => Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
@@ -74,34 +74,28 @@ class _NOverlayExampleState extends State<NOverlayExample> {
                             softWrap: false,
                             overflow: TextOverflow.fade,
                             style: getTextTheme(context).titleSmall)),
-                    InkWell(
-                        onTap: back, child: const Icon(Icons.close_rounded)),
+                    InkWell(onTap: back, child: const Icon(Icons.close_rounded)),
                   ]));
 
           return Column(children: [
             header(),
             Expanded(
-                child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    children: [
-                  Text(
-                      overlay.info.id == overlay.info.parseIdAsTimeString()
-                          ? "id: ${overlay.info.id}"
-                          : "${overlay.info.parseIdAsTimeString().replaceFirst(":", "시 ").replaceFirst(":", "분 ")}초에 생성됨",
-                      style: getTextTheme(context).bodySmall),
-                  Text("${latLng.toShortString()}에 위치함",
-                      style: getTextTheme(context).bodySmall),
-                  const SizedBox(height: 4),
-                  Text(
-                      "zIndex: ${overlay.zIndex} (global: ${overlay.globalZIndex})\n"
-                      "${overlay.minZoom} ${overlay.isMinZoomInclusive ? "≤" : "<"}"
-                      " [보이는 줌 범위] ${overlay.isMaxZoomInclusive ? "≤" : "<"} ${overlay.maxZoom}\n",
-                      style: getTextTheme(context).bodySmall),
-                ])),
-            SmallButton("오버레이 지우기",
-                icon: Icons.delete_forever_outlined,
-                radius: 0,
-                color: Colors.red.shade600, onTap: () {
+                child: ListView(padding: const EdgeInsets.symmetric(horizontal: 10), children: [
+              Text(
+                  overlay.info.id == overlay.info.parseIdAsTimeString()
+                      ? "id: ${overlay.info.id}"
+                      : "${overlay.info.parseIdAsTimeString().replaceFirst(":", "시 ").replaceFirst(":", "분 ")}초에 생성됨",
+                  style: getTextTheme(context).bodySmall),
+              Text("${latLng.toShortString()}에 위치함", style: getTextTheme(context).bodySmall),
+              const SizedBox(height: 4),
+              Text(
+                  "zIndex: ${overlay.zIndex} (global: ${overlay.globalZIndex})\n"
+                  "${overlay.minZoom} ${overlay.isMinZoomInclusive ? "≤" : "<"}"
+                  " [보이는 줌 범위] ${overlay.isMaxZoomInclusive ? "≤" : "<"} ${overlay.maxZoom}\n",
+                  style: getTextTheme(context).bodySmall),
+            ])),
+            SmallButton("오버레이 지우기", icon: Icons.delete_forever_outlined, radius: 0, color: Colors.red.shade600,
+                onTap: () {
               mapController.deleteOverlay(overlay.info);
               controller.hide();
             }),
@@ -122,9 +116,7 @@ class _NOverlayExampleState extends State<NOverlayExample> {
         SelectorWithTitle("오버레이 유형",
             description: "NOverlayType",
             selector: (context) => EasyDropdown(
-                items: NOverlayType.values
-                    .where((t) => t != NOverlayType.locationOverlay)
-                    .toList(),
+                items: NOverlayType.values.where((t) => t != NOverlayType.locationOverlay).toList(),
                 value: willCreateOverlayType,
                 onChanged: (v) => setState(() => willCreateOverlayType = v))),
         SimpleButton(
@@ -139,8 +131,7 @@ class _NOverlayExampleState extends State<NOverlayExample> {
                       text: "${willCreateOverlayType.koreanName}만 모두 지우기",
                       color: Colors.orange,
                       margin: EdgeInsets.zero,
-                      action: () => mapController.clearOverlays(
-                          type: willCreateOverlayType))),
+                      action: () => mapController.clearOverlays(type: willCreateOverlayType))),
               const SizedBox(width: 12),
               Expanded(
                   child: SimpleButton(
@@ -178,10 +169,7 @@ extension NOverlayInfoExtension on NOverlayInfo {
     final idForCreatedAt = int.tryParse(id);
     if (idForCreatedAt == null) return id;
     try {
-      return DateTime.fromMillisecondsSinceEpoch(idForCreatedAt)
-          .toIso8601String()
-          .split("T")
-          .last;
+      return DateTime.fromMillisecondsSinceEpoch(idForCreatedAt).toIso8601String().split("T").last;
     } catch (_) {
       return id;
     }
@@ -197,9 +185,7 @@ class NOverlayMakerUtil {
     final overlayId = id ?? _timeBasedId;
 
     final point = cameraPosition.target;
-    final heartCoords = NOverlayMakerUtil.getHeartCoordinates(
-        cameraPosition.target,
-        zoomLevel: cameraPosition.zoom);
+    final heartCoords = NOverlayMakerUtil.getHeartCoordinates(cameraPosition.target, zoomLevel: cameraPosition.zoom);
     final pathCoords = [
       point,
       point.offsetByMeter(northMeter: -100, eastMeter: 100),
@@ -214,11 +200,9 @@ class NOverlayMakerUtil {
 
     switch (type) {
       case NOverlayType.marker:
-        return [NMarker(id: overlayId, position: point)];
+        return [NMarker(id: overlayId, position: point, caption: const NOverlayCaption(text: "마커"))];
       case NOverlayType.infoWindow:
-        return [
-          NInfoWindow.onMap(id: overlayId, position: point, text: '인포 윈도우')
-        ];
+        return [NInfoWindow.onMap(id: overlayId, position: point, text: '인포 윈도우')];
       case NOverlayType.circleOverlay:
         return [
           NCircleOverlay(
@@ -230,30 +214,16 @@ class NOverlayMakerUtil {
               outlineWidth: 2)
         ];
       case NOverlayType.groundOverlay:
-        final bounds = NLatLngBounds(
-            southWest: point,
-            northEast: point.offsetByMeter(northMeter: 422, eastMeter: 818));
+        final bounds = NLatLngBounds(southWest: point, northEast: point.offsetByMeter(northMeter: 422, eastMeter: 818));
         print(bounds);
         const img = NOverlayImage.fromAssetImage('assets/ground_img.png');
-        return [
-          NGroundOverlay(id: overlayId, bounds: bounds, image: img, alpha: 1)
-        ];
+        return [NGroundOverlay(id: overlayId, bounds: bounds, image: img, alpha: 1)];
       case NOverlayType.polygonOverlay:
-        return [
-          NPolygonOverlay(
-              id: overlayId,
-              coords: heartCoords,
-              color: Colors.redAccent.withOpacity(0.5))
-        ];
+        return [NPolygonOverlay(id: overlayId, coords: heartCoords, color: Colors.redAccent.withOpacity(0.5))];
       case NOverlayType.polylineOverlay:
-        return [
-          NPolylineOverlay(
-              id: overlayId, coords: heartCoords, color: Colors.red)
-        ];
+        return [NPolylineOverlay(id: overlayId, coords: heartCoords, color: Colors.red)];
       case NOverlayType.pathOverlay:
-        return [
-          NPathOverlay(id: overlayId, coords: pathCoords, color: Colors.green)
-        ];
+        return [NPathOverlay(id: overlayId, coords: pathCoords, color: Colors.green)];
       case NOverlayType.multipartPathOverlay:
         return [
           NMultipartPathOverlay(id: overlayId, paths: [
@@ -262,10 +232,7 @@ class NOverlayMakerUtil {
           ])
         ];
       case NOverlayType.arrowheadPathOverlay:
-        return [
-          NArrowheadPathOverlay(
-              id: overlayId, coords: pathCoords, color: Colors.purple)
-        ];
+        return [NArrowheadPathOverlay(id: overlayId, coords: pathCoords, color: Colors.purple)];
       case NOverlayType.locationOverlay:
         throw Exception("locationOverlay is not supported");
       case NOverlayType.clusterableMarker:
@@ -274,8 +241,7 @@ class NOverlayMakerUtil {
             for (int j = 0, c = (i * 5 + 1); j < 5; j++, c++)
               NClusterableMarker(
                 id: "${overlayId}_$c",
-                position:
-                    point.offsetByMeter(northMeter: i * -80, eastMeter: j * 80),
+                position: point.offsetByMeter(northMeter: i * -80, eastMeter: j * 80),
                 caption: NOverlayCaption(text: "$c"),
                 iconTintColor: Colors.blueAccent,
               )
@@ -283,18 +249,14 @@ class NOverlayMakerUtil {
     }
   }
 
-  static List<NLatLng> getHeartCoordinates(NLatLng centerPoint,
-      {required double zoomLevel}) {
+  static List<NLatLng> getHeartCoordinates(NLatLng centerPoint, {required double zoomLevel}) {
     final radius = 20.0 / (1 + math.exp(0.75 * (zoomLevel - 14.5))) - 1.0;
     final List<NLatLng> heartCoords = [];
 
     for (double angle = 0; angle <= 2 * math.pi; angle += 0.01) {
       final double x = radius * 16 * math.pow(math.sin(angle), 3);
-      final double y = radius *
-          (13 * math.cos(angle) -
-              5 * math.cos(2 * angle) -
-              2 * math.cos(3 * angle) -
-              math.cos(4 * angle));
+      final double y =
+          radius * (13 * math.cos(angle) - 5 * math.cos(2 * angle) - 2 * math.cos(3 * angle) - math.cos(4 * angle));
       final coord = centerPoint.offsetByMeter(northMeter: y, eastMeter: x);
       heartCoords.add(coord);
     }

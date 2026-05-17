@@ -318,6 +318,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
     _webOverlayController = _NOverlayControllerWebImpl(
       viewId: viewId,
       jsOverlayRefs: _jsOverlays,
+      onSyncMarker: _syncJsMarker,
     );
   }
 
@@ -491,57 +492,7 @@ class _NaverMapControllerWebImpl implements NaverMapController {
 
     switch (overlay.info.type) {
       case NOverlayType.marker:
-        final pos = payload["position"];
-        final iconData = payload["icon"];
-        String? iconUrl;
-        double? width, height;
-        if (iconData is Map) {
-          iconUrl = iconData["path"] as String?;
-          // Size는 NMessageable이 아니므로 Dart Size 객체로 남아있음
-          final sizeData = payload["size"];
-          if (sizeData is Size) {
-            width = sizeData.width;
-            height = sizeData.height;
-          } else if (sizeData is Map) {
-            width = (sizeData["width"] as num?)?.toDouble();
-            height = (sizeData["height"] as num?)?.toDouble();
-          }
-          if (width == 0 && height == 0) {
-            // autoSize: 아이콘의 sourceSize 사용
-            final srcW = (iconData["sourceWidth"] as num?)?.toDouble();
-            final srcH = (iconData["sourceHeight"] as num?)?.toDouble();
-            if (srcW != null && srcH != null && srcW > 0 && srcH > 0) {
-              width = srcW;
-              height = srcH;
-            } else {
-              width = null;
-              height = null;
-            }
-          }
-        }
-        final anchorData = payload["anchor"];
-        double? anchorX, anchorY;
-        if (anchorData is NPoint) {
-          anchorX = anchorData.x;
-          anchorY = anchorData.y;
-        } else if (anchorData is Map) {
-          anchorX = (anchorData["x"] as num?)?.toDouble();
-          anchorY = (anchorData["y"] as num?)?.toDouble();
-        }
-        return web_ops.webAddMarker(_jsMap,
-            id: overlay.info.id,
-            lat: (pos["lat"] as num).toDouble(),
-            lng: (pos["lng"] as num).toDouble(),
-            iconUrl: iconUrl,
-            width: width,
-            height: height,
-            anchorX: anchorX,
-            anchorY: anchorY,
-            alpha: (payload["alpha"] as num?)?.toDouble() ?? 1.0,
-            angle: (payload["angle"] as num?)?.toDouble() ?? 0,
-            visible: payload["isVisible"] as bool? ?? true,
-            zIndex: payload["zIndex"] as int? ?? 0,
-            clickable: payload["hasOnTapListener"] as bool? ?? false);
+        return _createJsMarkerOverlay(overlay as NMarker);
 
       case NOverlayType.polylineOverlay:
         final coordsList = payload["coords"] as List;
@@ -637,6 +588,78 @@ class _NaverMapControllerWebImpl implements NaverMapController {
       default:
         return null;
     }
+  }
+
+  dynamic _createJsMarkerOverlay(NMarker marker) {
+    final markerOptions = _toWebMarkerOptions(marker);
+
+    return web_ops.webAddMarker(
+      _jsMap,
+      id: marker.info.id,
+      lat: marker.position.latitude,
+      lng: marker.position.longitude,
+      iconUrl: markerOptions.iconUrl,
+      width: markerOptions.width,
+      height: markerOptions.height,
+      anchorX: markerOptions.anchorX,
+      anchorY: markerOptions.anchorY,
+      alpha: marker.alpha,
+      angle: marker.angle,
+      caption: marker.caption?.toNPayload().map,
+      subCaption: marker.subCaption?.toNPayload().map,
+      captionAligns: marker.captionAligns.map((align) => align.name).toList(growable: false),
+      captionOffset: marker.captionOffset,
+      visible: marker.isVisible,
+      zIndex: marker.zIndex,
+      clickable: marker._hasOnTapListener,
+    );
+  }
+
+  void _syncJsMarker(dynamic jsMarker, NMarker marker) {
+    final markerOptions = _toWebMarkerOptions(marker);
+
+    web_ops.webUpdateMarker(
+      jsMarker,
+      iconUrl: markerOptions.iconUrl,
+      width: markerOptions.width,
+      height: markerOptions.height,
+      anchorX: markerOptions.anchorX,
+      anchorY: markerOptions.anchorY,
+      alpha: marker.alpha,
+      angle: marker.angle,
+      caption: marker.caption?.toNPayload().map,
+      subCaption: marker.subCaption?.toNPayload().map,
+      captionAligns: marker.captionAligns.map((align) => align.name).toList(growable: false),
+      captionOffset: marker.captionOffset,
+    );
+  }
+
+  _WebMarkerOptions _toWebMarkerOptions(NMarker marker) {
+    final iconPayload = marker.icon?.toNPayload().map;
+    final iconUrl = iconPayload?["path"] as String?;
+
+    double? width = marker.size.width;
+    double? height = marker.size.height;
+
+    if (width == 0 && height == 0) {
+      final srcW = (iconPayload?["sourceWidth"] as num?)?.toDouble();
+      final srcH = (iconPayload?["sourceHeight"] as num?)?.toDouble();
+      if (srcW != null && srcH != null && srcW > 0 && srcH > 0) {
+        width = srcW;
+        height = srcH;
+      } else {
+        width = null;
+        height = null;
+      }
+    }
+
+    return _WebMarkerOptions(
+      iconUrl: iconUrl,
+      width: width,
+      height: height,
+      anchorX: marker.anchor.x,
+      anchorY: marker.anchor.y,
+    );
   }
 
   @override
@@ -790,10 +813,12 @@ class _NOverlayControllerWebImpl extends _NOverlayController {
 
   final Map<NOverlayInfo, dynamic> _jsOverlayRefs;
   final Map<NOverlayInfo, NOverlay> _overlays = {};
+  final void Function(dynamic jsMarker, NMarker marker) onSyncMarker;
 
   _NOverlayControllerWebImpl({
     required this.viewId,
     required Map<NOverlayInfo, dynamic> jsOverlayRefs,
+    required this.onSyncMarker,
   }) : _jsOverlayRefs = jsOverlayRefs {
     // MethodChannel 없이 isChannelInitialized을 true로 설정
     isChannelInitialized = true;
@@ -842,12 +867,18 @@ class _NOverlayControllerWebImpl extends _NOverlayController {
           web_ops.webSetMarkerPosition(jsOverlay, (value["lat"] as num).toDouble(), (value["lng"] as num).toDouble());
         }
         break;
+      case "anchor":
+      case "size":
+      case "alpha":
+      case "angle":
       case "icon":
-        if (value is Map) {
-          final iconUrl = value["path"] as String?;
-          final srcW = (value["sourceWidth"] as num?)?.toDouble();
-          final srcH = (value["sourceHeight"] as num?)?.toDouble();
-          web_ops.webSetMarkerIcon(jsOverlay, iconUrl, srcW, srcH);
+      case "caption":
+      case "subCaption":
+      case "captionAligns":
+      case "captionOffset":
+        final overlay = _overlays[query.info];
+        if (overlay is NMarker) {
+          onSyncMarker(jsOverlay, overlay);
         }
         break;
       case "hasOnTapListener":
@@ -861,4 +892,20 @@ class _NOverlayControllerWebImpl extends _NOverlayController {
 
     return null;
   }
+}
+
+class _WebMarkerOptions {
+  final String? iconUrl;
+  final double? width;
+  final double? height;
+  final double anchorX;
+  final double anchorY;
+
+  const _WebMarkerOptions({
+    required this.iconUrl,
+    required this.width,
+    required this.height,
+    required this.anchorX,
+    required this.anchorY,
+  });
 }
