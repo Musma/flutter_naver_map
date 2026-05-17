@@ -3,25 +3,23 @@
 void setupWebMapEventListeners({
   required dynamic jsMap,
   required void Function(double lat, double lng, double x, double y) onMapTapped,
-  required void Function(double lat, double lng, double zoom, double tilt, double bearing, bool animated) onCameraChange,
+  required void Function(double lat, double lng, double zoom, double tilt, double bearing, bool animated)
+      onCameraChange,
   required void Function(double lat, double lng, double zoom, double tilt, double bearing) onCameraIdle,
 }) {
   throw UnsupportedError("Web map operations are not supported on this platform");
 }
 
-Map<String, double> webGetCameraPosition(dynamic jsMap) =>
-    throw UnsupportedError("Not supported");
+Map<String, double> webGetCameraPosition(dynamic jsMap) => throw UnsupportedError("Not supported");
 
-Map<String, double> webGetContentBounds(dynamic jsMap) =>
-    throw UnsupportedError("Not supported");
+Map<String, double> webGetContentBounds(dynamic jsMap) => throw UnsupportedError("Not supported");
 
-Map<String, double> webScreenToLatLng(dynamic jsMap, double x, double y) =>
-    throw UnsupportedError("Not supported");
+Map<String, double> webScreenToLatLng(dynamic jsMap, double x, double y) => throw UnsupportedError("Not supported");
 
-Map<String, double> webLatLngToScreen(dynamic jsMap, double lat, double lng) =>
-    throw UnsupportedError("Not supported");
+Map<String, double> webLatLngToScreen(dynamic jsMap, double lat, double lng) => throw UnsupportedError("Not supported");
 
-void webUpdateCamera(dynamic jsMap, {
+void webUpdateCamera(
+  dynamic jsMap, {
   double? lat,
   double? lng,
   double? zoom,
@@ -38,7 +36,8 @@ void webSetMapOptions(dynamic jsMap, Map<String, dynamic> options) {
   throw UnsupportedError("Not supported");
 }
 
-dynamic webAddMarker(dynamic jsMap, {
+dynamic webAddMarker(
+  dynamic jsMap, {
   required String id,
   required double lat,
   required double lng,
@@ -60,7 +59,8 @@ dynamic webAddMarker(dynamic jsMap, {
   throw UnsupportedError("Not supported");
 }
 
-dynamic webAddPolyline(dynamic jsMap, {
+dynamic webAddPolyline(
+  dynamic jsMap, {
   required String id,
   required List<List<double>> coords,
   required int color,
@@ -72,7 +72,8 @@ dynamic webAddPolyline(dynamic jsMap, {
   throw UnsupportedError("Not supported");
 }
 
-dynamic webAddPolygon(dynamic jsMap, {
+dynamic webAddPolygon(
+  dynamic jsMap, {
   required String id,
   required List<List<double>> coords,
   required int color,
@@ -85,7 +86,8 @@ dynamic webAddPolygon(dynamic jsMap, {
   throw UnsupportedError("Not supported");
 }
 
-dynamic webAddCircle(dynamic jsMap, {
+dynamic webAddCircle(
+  dynamic jsMap, {
   required String id,
   required double lat,
   required double lng,
@@ -100,7 +102,8 @@ dynamic webAddCircle(dynamic jsMap, {
   throw UnsupportedError("Not supported");
 }
 
-dynamic webAddInfoWindow(dynamic jsMap, {
+dynamic webAddInfoWindow(
+  dynamic jsMap, {
   required String id,
   required String content,
   double? lat,
@@ -111,7 +114,8 @@ dynamic webAddInfoWindow(dynamic jsMap, {
   throw UnsupportedError("Not supported");
 }
 
-dynamic webAddGroundOverlay(dynamic jsMap, {
+dynamic webAddGroundOverlay(
+  dynamic jsMap, {
   required String id,
   required String imageUrl,
   required double swLat,
@@ -144,7 +148,8 @@ void webSetMarkerIcon(dynamic jsMarker, String? iconUrl, double? width, double? 
   throw UnsupportedError("Not supported");
 }
 
-void webUpdateMarker(dynamic jsMarker, {
+void webUpdateMarker(
+  dynamic jsMarker, {
   String? iconUrl,
   double? width,
   double? height,

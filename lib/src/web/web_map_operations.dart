@@ -193,8 +193,8 @@ String _captionTextHtml(Map<String, dynamic> caption) {
   return "<div style=\"font-size:${textSize}px; font-weight:600; line-height:1.2; color:$color; text-align:center; $wrapStyle text-shadow:-1px -1px 0 $haloColor, 1px -1px 0 $haloColor, -1px 1px 0 $haloColor, 1px 1px 0 $haloColor;\">$text</div>";
 }
 
-String _captionContainerStyle(String align, double iconWidth, double iconHeight, double anchorXPx,
-    double anchorYPx, double captionOffset) {
+String _captionContainerStyle(
+    String align, double iconWidth, double iconHeight, double anchorXPx, double anchorYPx, double captionOffset) {
   final iconLeft = -anchorXPx;
   final iconTop = -anchorYPx;
   final centerX = iconLeft + (iconWidth / 2);
@@ -238,7 +238,8 @@ String _markerVisualHtml({
   required double alpha,
   required double angle,
 }) {
-  final visualStyle = "position:absolute; left:${-anchorXPx}px; top:${-anchorYPx}px; width:${iconWidth}px; height:${iconHeight}px; opacity:$alpha; transform:${angle == 0 ? "none" : "rotate(${angle}deg)"}; transform-origin:center center;";
+  final visualStyle =
+      "position:absolute; left:${-anchorXPx}px; top:${-anchorYPx}px; width:${iconWidth}px; height:${iconHeight}px; opacity:$alpha; transform:${angle == 0 ? "none" : "rotate(${angle}deg)"}; transform-origin:center center;";
 
   if (iconUrl != null && iconUrl.isNotEmpty) {
     final escapedUrl = _htmlEscape.convert(iconUrl);
@@ -289,7 +290,8 @@ JSAny? _buildMarkerIcon({
     captionsHtml.add(_captionTextHtml(subCaption!));
   }
 
-  final html = "<div style=\"position:relative; width:0; height:0; pointer-events:none;\">${_markerVisualHtml(iconUrl: iconUrl, iconWidth: iconWidth, iconHeight: iconHeight, anchorXPx: anchorXPx, anchorYPx: anchorYPx, alpha: alpha, angle: angle)}<div style=\"position:absolute; display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; $captionStyle\">${captionsHtml.join()}</div></div>";
+  final html =
+      "<div style=\"position:relative; width:0; height:0; pointer-events:none;\">${_markerVisualHtml(iconUrl: iconUrl, iconWidth: iconWidth, iconHeight: iconHeight, anchorXPx: anchorXPx, anchorYPx: anchorYPx, alpha: alpha, angle: angle)}<div style=\"position:absolute; display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; $captionStyle\">${captionsHtml.join()}</div></div>";
 
   return JSHtmlIcon(content: html.toJS) as JSAny;
 }
