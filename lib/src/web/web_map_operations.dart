@@ -231,22 +231,26 @@ String _defaultMarkerHtml(double width, double height) {
 
 String _markerVisualHtml({
   required String? iconUrl,
-  required double iconWidth,
-  required double iconHeight,
-  required double anchorXPx,
-  required double anchorYPx,
+  required double? iconWidth,
+  required double? iconHeight,
+  required double anchorX,
+  required double anchorY,
   required double alpha,
   required double angle,
 }) {
+  final sizeStyle = iconWidth != null && iconHeight != null ? "width:${iconWidth}px; height:${iconHeight}px;" : "";
+  final translateX = (anchorX * 100).toStringAsFixed(4).replaceFirst(RegExp(r"0+$"), "").replaceFirst(RegExp(r"\.$"), "");
+  final translateY = (anchorY * 100).toStringAsFixed(4).replaceFirst(RegExp(r"0+$"), "").replaceFirst(RegExp(r"\.$"), "");
+  final rotation = angle == 0 ? "" : " rotate(${angle}deg)";
   final visualStyle =
-      "position:absolute; left:${-anchorXPx}px; top:${-anchorYPx}px; width:${iconWidth}px; height:${iconHeight}px; opacity:$alpha; transform:${angle == 0 ? "none" : "rotate(${angle}deg)"}; transform-origin:center center;";
+      "position:absolute; left:0; top:0; $sizeStyle opacity:$alpha; transform:translate(-$translateX%, -$translateY%)$rotation; transform-origin:center center;";
 
   if (iconUrl != null && iconUrl.isNotEmpty) {
     final escapedUrl = _htmlEscape.convert(iconUrl);
     return "<img src=\"$escapedUrl\" style=\"$visualStyle display:block; pointer-events:none;\" alt=\"\" />";
   }
 
-  return "<div style=\"$visualStyle pointer-events:none;\">${_defaultMarkerHtml(iconWidth, iconHeight)}</div>";
+  return "<div style=\"$visualStyle pointer-events:none;\">${_defaultMarkerHtml(iconWidth ?? 40.0, iconHeight ?? 48.0)}</div>";
 }
 
 JSAny? _buildMarkerIcon({
@@ -275,6 +279,7 @@ JSAny? _buildMarkerIcon({
     return iconUrl.toJS;
   }
 
+  final hasExplicitSize = width != null && width > 0 && height != null && height > 0;
   final iconWidth = width != null && width > 0 ? width : 40.0;
   final iconHeight = height != null && height > 0 ? height : 48.0;
   final anchorXPx = (anchorX ?? 0.5) * iconWidth;
@@ -291,7 +296,7 @@ JSAny? _buildMarkerIcon({
   }
 
   final html =
-      "<div style=\"position:relative; width:0; height:0; pointer-events:none;\">${_markerVisualHtml(iconUrl: iconUrl, iconWidth: iconWidth, iconHeight: iconHeight, anchorXPx: anchorXPx, anchorYPx: anchorYPx, alpha: alpha, angle: angle)}<div style=\"position:absolute; display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; $captionStyle\">${captionsHtml.join()}</div></div>";
+      "<div style=\"position:relative; width:0; height:0; pointer-events:none;\">${_markerVisualHtml(iconUrl: iconUrl, iconWidth: iconUrl == null || hasExplicitSize ? iconWidth : null, iconHeight: iconUrl == null || hasExplicitSize ? iconHeight : null, anchorX: anchorX ?? 0.5, anchorY: anchorY ?? 1.0, alpha: alpha, angle: angle)}<div style=\"position:absolute; display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; $captionStyle\">${captionsHtml.join()}</div></div>";
 
   return JSHtmlIcon(content: html.toJS) as JSAny;
 }
