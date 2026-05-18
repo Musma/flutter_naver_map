@@ -63,8 +63,7 @@ class NaverMap extends StatefulWidget {
   /// 지도의 어느 영역을 보여줄지 지정하는 카메라가, 다른 위치로 변경 되는 중에 실행 되는 함수입니다.
   /// 어떤 이유로 카메라가 이동했는지 알 수 있는 [NCameraUpdateReason]과,
   /// 애니메이션과 함께 부드럽게 이동했는지 알 수 있는 [bool]값을 매개변수로 제공합니다.
-  final void Function(NCameraUpdateReason reason, bool animated)?
-      onCameraChange;
+  final void Function(NCameraUpdateReason reason, bool animated)? onCameraChange;
 
   /// 카메라가 완전히 멈추었을 때, 실행 되는 함수입니다.
   /// 매 카메라 이동마다 [onCameraChange] 다음에 한번만 실행됩니다.
@@ -103,8 +102,7 @@ class NaverMap extends StatefulWidget {
   State<NaverMap> createState() => _NaverMapState();
 }
 
-class _NaverMapState extends State<NaverMap>
-    with _NaverMapControlHandler, NChannelWrapper {
+class _NaverMapState extends State<NaverMap> with _NaverMapControlHandler, NChannelWrapper {
   @override
   late final MethodChannel channel;
   late final NaverMapController controller;
@@ -119,8 +117,7 @@ class _NaverMapState extends State<NaverMap>
 
   @override
   Widget build(BuildContext context) {
-    assert(
-        FlutterNaverMap.isInitialized || legacyMapInitializer._isInitialized);
+    assert(FlutterNaverMap.isInitialized || legacyMapInitializer._isInitialized);
 
     _updateOptionsIfNeeded();
 
@@ -131,8 +128,7 @@ class _NaverMapState extends State<NaverMap>
         gestureRecognizers: _createGestureRecognizers(widget.forceGesture),
         creationParams: widget.options.toNPayload(),
         onPlatformViewCreated: _onPlatformViewCreated,
-        androidSdkVersion: FlutterNaverMap.androidSdkVersion ??
-            legacyMapInitializer._androidSdkVersion,
+        androidSdkVersion: FlutterNaverMap.androidSdkVersion ?? legacyMapInitializer._androidSdkVersion,
         forceHybridComposition: widget.forceHybridComposition,
         forceGLSurfaceView: widget.forceGLSurfaceView,
         onWebMapCreated: kIsWeb ? _onWebMapCreated : null,
@@ -147,16 +143,13 @@ class _NaverMapState extends State<NaverMap>
     return Padding(
       padding: padding,
       child: Stack(children: [
-        _naverLogo(
-            align: options.logoAlign, clickEnable: options.logoClickEnable),
+        _naverLogo(align: options.logoAlign, clickEnable: options.logoClickEnable),
         if (options.scaleBarEnable)
-          _scaleBar(initCameraPosition: options.initialCameraPosition),
-        if (options.locationButtonEnable)
-          _locationButton(nightModeEnable: options.nightModeEnable),
+          _scaleBar(align: options.logoAlign, initCameraPosition: options.initialCameraPosition),
+        if (options.locationButtonEnable) _locationButton(nightModeEnable: options.nightModeEnable),
         if (options.compassEnable)
           _compassWidget(
-              initCameraPosition: options.initialCameraPosition,
-              hideWhenUnrotated: options.compassHideWhenUnrotated),
+              initCameraPosition: options.initialCameraPosition, hideWhenUnrotated: options.compassHideWhenUnrotated),
       ]),
     );
   }
@@ -174,16 +167,16 @@ class _NaverMapState extends State<NaverMap>
         child: FutureBuilder(
             future: controllerCompleter.future,
             builder: (context, snapshot) {
-              return NMapLogoWidget(
-                  naverMapController: snapshot.data,
-                  logoClickEnable: clickEnable);
+              return NMapLogoWidget(naverMapController: snapshot.data, logoClickEnable: clickEnable);
             }));
   }
 
-  Widget _scaleBar({required NCameraPosition? initCameraPosition}) {
+  Widget _scaleBar({required NLogoAlign align, required NCameraPosition? initCameraPosition}) {
     return Positioned(
-        left: NMapLogoWidget.width + 16,
-        bottom: 0,
+        left: align.isLeft ? NMapLogoWidget.width + 16 : null,
+        right: align.isRight ? 0 : null,
+        top: align.isTop ? 0 : null,
+        bottom: align.isBottom ? 0 : null,
         child: SizedBox(
             height: NMapLogoWidget.height,
             child: Center(
@@ -191,8 +184,7 @@ class _NaverMapState extends State<NaverMap>
                     future: controllerCompleter.future,
                     builder: (context, snapshot) {
                       return NMapScaleBarWidget(
-                          naverMapController: snapshot.data,
-                          initCameraPosition: initCameraPosition);
+                          naverMapController: snapshot.data, initCameraPosition: initCameraPosition);
                     }))));
   }
 
@@ -206,15 +198,11 @@ class _NaverMapState extends State<NaverMap>
                 child: FutureBuilder(
                     future: controllerCompleter.future,
                     builder: (context, snapshot) {
-                      return NMyLocationButtonWidget(
-                          mapController: snapshot.data,
-                          nightMode: nightModeEnable);
+                      return NMyLocationButtonWidget(mapController: snapshot.data, nightMode: nightModeEnable);
                     }))));
   }
 
-  Widget _compassWidget(
-      {required NCameraPosition? initCameraPosition,
-      required bool hideWhenUnrotated}) {
+  Widget _compassWidget({required NCameraPosition? initCameraPosition, required bool hideWhenUnrotated}) {
     return Positioned(
         top: 0,
         left: 0,
@@ -235,32 +223,28 @@ class _NaverMapState extends State<NaverMap>
   void _onPlatformViewCreated(int id) {
     initChannel(NChannel.naverMapNativeView, id: id, handler: handle);
     controller = NaverMapController._createController(channel,
-        viewId: id,
-        initialCameraPosition: widget.options.initialCameraPosition);
+        viewId: id, initialCameraPosition: widget.options.initialCameraPosition);
   }
 
   void _onWebMapCreated(int id, dynamic jsMap) {
     debugPrint("[flutter_naver_map] _onWebMapCreated called (viewId: $id)");
     controller = NaverMapController._createWebController(
-        viewId: id,
-        jsMap: jsMap,
-        initialCameraPosition: widget.options.initialCameraPosition,
-        onMapTapped: (point, latLng) => onMapTapped(point, latLng),
-        onCameraChange: (reason, animated, position) =>
-            onCameraChangeWithCameraPosition(reason, animated, position),
-        onCameraIdle: (position) => onCameraIdle(position),
+      viewId: id,
+      jsMap: jsMap,
+      initialCameraPosition: widget.options.initialCameraPosition,
+      onMapTapped: (point, latLng) => onMapTapped(point, latLng),
+      onCameraChange: (reason, animated, position) => onCameraChangeWithCameraPosition(reason, animated, position),
+      onCameraIdle: (position) => onCameraIdle(position),
     );
     // 웹에서는 MethodChannel이 없으므로 바로 onMapReady 호출
     debugPrint("[flutter_naver_map] calling onMapReady from web");
     onMapReady();
   }
 
-  Set<Factory<OneSequenceGestureRecognizer>> _createGestureRecognizers(
-      bool forceGesture) {
+  Set<Factory<OneSequenceGestureRecognizer>> _createGestureRecognizers(bool forceGesture) {
     final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers = {};
     if (forceGesture) {
-      gestureRecognizers
-          .add(Factory<EagerGestureRecognizer>(() => EagerGestureRecognizer()));
+      gestureRecognizers.add(Factory<EagerGestureRecognizer>(() => EagerGestureRecognizer()));
     }
     return gestureRecognizers;
   }
@@ -273,8 +257,7 @@ class _NaverMapState extends State<NaverMap>
     }
     if (nowClusterOptions != widget.clusterOptions) {
       nowClusterOptions = widget.clusterOptions;
-      updateQueue
-          .add(() => controller._updateClusteringOptions(nowClusterOptions!));
+      updateQueue.add(() => controller._updateClusteringOptions(nowClusterOptions!));
     }
 
     if (updateQueue.isNotEmpty) {
@@ -306,8 +289,7 @@ class _NaverMapState extends State<NaverMap>
   @override
   void onMapReady() async {
     controllerCompleter.complete(controller);
-    await _runOnMapReadyTasks()
-        .then((_) => isUpdatedBeforeMapReadyWithUpdateQueue = true);
+    await _runOnMapReadyTasks().then((_) => isUpdatedBeforeMapReadyWithUpdateQueue = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onMapReady?.call(controller);
       onMapReadyCompleter.complete();
@@ -325,35 +307,28 @@ class _NaverMapState extends State<NaverMap>
   }
 
   @override
-  void onMapTapped(NPoint point, NLatLng latLng) =>
-      widget.onMapTapped?.call(point, latLng);
+  void onMapTapped(NPoint point, NLatLng latLng) => widget.onMapTapped?.call(point, latLng);
 
   @override
-  void onMapLongTapped(NPoint point, NLatLng latLng) =>
-      widget.onMapLongTapped?.call(point, latLng);
+  void onMapLongTapped(NPoint point, NLatLng latLng) => widget.onMapLongTapped?.call(point, latLng);
 
   @override
-  void onSymbolTapped(NSymbolInfo symbol) =>
-      widget.onSymbolTapped?.call(symbol);
+  void onSymbolTapped(NSymbolInfo symbol) => widget.onSymbolTapped?.call(symbol);
 
   @override
-  void onCameraChangeWithCameraPosition(
-      NCameraUpdateReason reason, bool animated, NCameraPosition position) {
-    controller._updateNowCameraPositionData(
-        position, reason, false); // stream update.
+  void onCameraChangeWithCameraPosition(NCameraUpdateReason reason, bool animated, NCameraPosition position) {
+    controller._updateNowCameraPositionData(position, reason, false); // stream update.
     widget.onCameraChange?.call(reason, animated);
   }
 
   @override
-  void onSelectedIndoorChanged(NSelectedIndoor? selectedIndoor) =>
-      widget.onSelectedIndoorChanged?.call(selectedIndoor);
+  void onSelectedIndoorChanged(NSelectedIndoor? selectedIndoor) => widget.onSelectedIndoorChanged?.call(selectedIndoor);
 
   @override
   void onCustomStyleLoaded() => widget.onCustomStyleLoaded?.call();
 
   @override
-  void onCustomStyleLoadFailed(NStyleLoadFailedException exception) =>
-      widget.onCustomStyleLoadFailed?.call(exception);
+  void onCustomStyleLoadFailed(NStyleLoadFailedException exception) => widget.onCustomStyleLoadFailed?.call(exception);
 
   @override
   void onCameraIdle(NCameraPosition position) {
@@ -365,8 +340,7 @@ class _NaverMapState extends State<NaverMap>
   void onAnotherMethod(String methodName, dynamic args) {
     switch (methodName) {
       case "clusterMarkerBuilder":
-        nowClusterOptions?._handleClusterMarkerBuilder(
-            args, (controller as _NaverMapControllerImpl).overlayController);
+        nowClusterOptions?._handleClusterMarkerBuilder(args, (controller as _NaverMapControllerImpl).overlayController);
         break;
     }
   }
